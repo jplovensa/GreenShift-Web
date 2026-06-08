@@ -9,6 +9,7 @@ export default function Contact() {
   const leftRef = useRef<HTMLDivElement>(null)
   const formRef = useRef<HTMLFormElement>(null)
   const [submitted, setSubmitted] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -28,9 +29,35 @@ export default function Contact() {
     return () => ctx.revert()
   }, [])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    setSubmitted(true)
+
+    if (!formRef.current) return
+
+    const formData = new FormData(formRef.current)
+    formData.append("access_key", "07d2bbd0-504b-48ee-861e-f8ee4bc4cf3b")
+
+    setIsSubmitting(true)
+
+    try {
+      const response = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        body: formData
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        setSubmitted(true)
+        formRef.current.reset()
+      } else {
+        alert("Error: " + data.message)
+      }
+    } catch (error) {
+      alert("Something went wrong. Please try again.")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -99,9 +126,9 @@ export default function Contact() {
               Initiate a project or send us a note.
             </p>
 
-            <InputField label="Full name" required />
-            <InputField label="Email" type="email" required />
-            <InputField label="Company" />
+            <InputField label="Full name" name="name" required />
+            <InputField label="Email" name="email" type="email" required />
+            <InputField label="Company" name="company" />
 
             <div>
               <label
@@ -118,6 +145,7 @@ export default function Contact() {
                 Interest
               </label>
               <select
+                name="interest"
                 style={{
                   width: '100%',
                   backgroundColor: 'transparent',
@@ -153,6 +181,7 @@ export default function Contact() {
                 Message
               </label>
               <textarea
+                name="message"
                 placeholder="Tell us about your project, timeline, and goals..."
                 rows={4}
                 style={{
@@ -172,6 +201,7 @@ export default function Contact() {
 
             <button
               type="submit"
+              disabled={isSubmitting}
               style={{
                 fontSize: '13px',
                 fontWeight: 500,
@@ -181,22 +211,27 @@ export default function Contact() {
                 backgroundColor: 'transparent',
                 border: '1px solid rgba(255,255,255,0.3)',
                 padding: '16px 32px',
-                cursor: 'pointer',
+                cursor: isSubmitting ? 'not-allowed' : 'pointer',
                 transition: 'all 0.3s ease',
                 marginTop: '8px',
+                opacity: isSubmitting ? 0.6 : 1,
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#ffffff'
-                e.currentTarget.style.color = '#0a0a0a'
-                e.currentTarget.style.borderColor = '#ffffff'
+                if (!isSubmitting) {
+                  e.currentTarget.style.backgroundColor = '#ffffff'
+                  e.currentTarget.style.color = '#0a0a0a'
+                  e.currentTarget.style.borderColor = '#ffffff'
+                }
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent'
-                e.currentTarget.style.color = '#ffffff'
-                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)'
+                if (!isSubmitting) {
+                  e.currentTarget.style.backgroundColor = 'transparent'
+                  e.currentTarget.style.color = '#ffffff'
+                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)'
+                }
               }}
             >
-              Send Message
+              {isSubmitting ? 'Sending...' : 'Send Message'}
             </button>
           </form>
         )}
@@ -205,7 +240,7 @@ export default function Contact() {
   )
 }
 
-function InputField({ label, type = 'text', required = false }: { label: string; type?: string; required?: boolean }) {
+function InputField({ label, name, type = 'text', required = false }: { label: string; name?: string; type?: string; required?: boolean }) {
   return (
     <div>
       <label
@@ -223,6 +258,7 @@ function InputField({ label, type = 'text', required = false }: { label: string;
       </label>
       <input
         type={type}
+        name={name}
         required={required}
         style={{
           width: '100%',

@@ -55,10 +55,10 @@ export default function Footer() {
             Contact
           </span>
           <p style={{ fontSize: '14px', fontWeight: 300, color: 'rgba(0,0,0,0.6)', marginBottom: '4px' }}>
-            info@greenshift.id
+            www.greenshift.id
           </p>
           <p style={{ fontSize: '14px', fontWeight: 300, color: 'rgba(0,0,0,0.6)' }}>
-            +62 (0) 812 3866 8698
+            +62 877 8601 0290
           </p>
         </div>
       </div>
